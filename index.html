@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    .option {
+      display: block;
+      background: #e4e4e4;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .option:hover {
+      background: #ccc;
+    }
+    #next-btn {
+      margin-top: 20px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #next-btn:hover {
+      background-color: #0056b3;
+    }
+    #timer {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h2 id="question">Loading...</h2>
+    <div id="options"></div>
+    <div id="timer">Time Left: <span id="time">15</span>s</div>
+    <button id="next-btn">Next</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        category: "Science",
+        question: "What is the chemical symbol for water?",
+        options: ["O2", "H2O", "CO2", "NaCl"],
+        answer: "H2O"
+      },
+      {
+        category: "History",
+        question: "Who was the first President of the United States?",
+        options: ["Abraham Lincoln", "Thomas Jefferson", "George Washington", "John Adams"],
+        answer: "George Washington"
+      },
+      {
+        category: "General Knowledge",
+        question: "Which planet is known as the Red Planet?",
+        options: ["Earth", "Mars", "Jupiter", "Venus"],
+        answer: "Mars"
+      },
+      {
+        category: "Technology",
+        question: "HTML stands for?",
+        options: ["Hyper Tool Markup Language", "Hyper Text Markup Language", "High Text Machine Language", "None of the above"],
+        answer: "Hyper Text Markup Language"
+      }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let selectedOption = null;
+    let timeLeft = 15;
+    let timer;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const nextBtn = document.getElementById("next-btn");
+    const timeEl = document.getElementById("time");
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timeEl.textContent = timeLeft;
+      selectedOption = null;
+
+      const q = questions[currentIndex];
+      questionEl.textContent = `(${q.category}) ${q.question}`;
+      optionsEl.innerHTML = "";
+
+      q.options.forEach(option => {
+        const div = document.createElement("div");
+        div.classList.add("option");
+        div.textContent = option;
+        div.onclick = () => selectOption(div, option);
+        optionsEl.appendChild(div);
+      });
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          autoMoveNext(); // Skip without scoring
+        }
+      }, 1000);
+    }
+
+    function selectOption(element, option) {
+      selectedOption = option;
+
+      [...optionsEl.children].forEach(opt => {
+        opt.style.backgroundColor = "#e4e4e4";
+      });
+
+      element.style.backgroundColor = "#ffc107"; // highlight yellow
+    }
+
+    function checkAnswer() {
+      const q = questions[currentIndex];
+      [...optionsEl.children].forEach(opt => {
+        if (opt.textContent === q.answer) {
+          opt.style.backgroundColor = "#28a745"; // green
+        } else if (opt.textContent === selectedOption) {
+          opt.style.backgroundColor = "#dc3545"; // red
+        } else {
+          opt.style.backgroundColor = "#e4e4e4";
+        }
+        opt.style.cursor = "default";
+      });
+
+      if (selectedOption === q.answer) {
+        score++;
+      }
+    }
+
+    function autoMoveNext() {
+      currentIndex++;
+      selectedOption = null;
+
+      setTimeout(() => {
+        if (currentIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }, 500);
+    }
+
+    nextBtn.onclick = () => {
+      if (selectedOption === null) {
+        alert("Please select an option before proceeding.");
+        return;
+      }
+
+      clearInterval(timer);
+      checkAnswer();
+
+      currentIndex++;
+      setTimeout(() => {
+        if (currentIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }, 1000);
+    };
+
+    function showResults() {
+      clearInterval(timer);
+      questionEl.textContent = `Quiz Completed!`;
+      optionsEl.innerHTML = `<h3>Your Score: ${score} / ${questions.length}</h3>`;
+      nextBtn.style.display = "none";
+      document.getElementById("timer").style.display = "none";
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>
